@@ -1,17 +1,20 @@
 class RTDB_Frontend {
     #id = null
     #url = null
-    #listen_server_func = null
+    #server_to_client_function = null
+
+
+
     async connect(url) {
         this.#url = url
         const response = await fetch(this.#url + "/fHJQowZSpq_RTDB/connect")
         if (response.ok) {
             const data = await response.json();
-            console.log(data["id"])
-            this.#id = data["id"]
-            return "connected"
+            console.log(data["client_id"])
+            this.#id = data["client_id"]
+            return { "status": "connected" }
         }
-        return "connection failed"
+        return { "status": "failed to connect" }
     }
     async emit(data) {
         if (this.#url != null && this.#id) {
@@ -19,7 +22,7 @@ class RTDB_Frontend {
                 "client_id": this.#id,
                 "data": data
             }
-            const client_emit_url = this.#url + "/fHJQowZSpq_RTDB/client_emit"
+            const client_emit_url = this.#url + "/fHJQowZSpq_RTDB/client_to_server"
             const response = await fetch(client_emit_url, {
                 method: 'POST',
                 headers: {
@@ -35,11 +38,11 @@ class RTDB_Frontend {
         }
     }
     async listen_server() {
-        if (this.#url != null && this.#id && this.#listen_server_func) {
+        if (this.#url != null && this.#id && this.#server_to_client_function) {
             const payload = {
                 "client_id": this.#id,
             }
-            const url = this.#url + "/fHJQowZSpq_RTDB/server_emit"
+            const url = this.#url + "/fHJQowZSpq_RTDB/server_to_client"
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -49,14 +52,14 @@ class RTDB_Frontend {
             })
             if (response.ok) {
                 const data = await response.json()
-                this.#listen_server_func(data)
+                this.#server_to_client_function(data)
                 this.listen_server()
             }
-            return "failed to listen data"
+            return { "status": "disconnected" }
         }
     }
     listen(data) {
-        this.#listen_server_func = data
+        this.#server_to_client_function = data
         this.listen_server()
     }
 }
