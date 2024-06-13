@@ -29,7 +29,7 @@ class RTDB_Backend {
         }
     }
 
-    emit(client_id, data) {
+    unicast(client_id, data) {
         if (this.#clients[client_id] != undefined) {
             data["type"] = "unicast"
             this.#clients[client_id]["data_queue"].push(data)
@@ -69,10 +69,20 @@ class RTDB_Backend {
         this.#app.post("/fHJQowZSpq_RTDB/server_to_client", (req, res) => {
             const client_data = req.body
             const client_id = client_data["client_id"]
-            // console.log(client_id, "is listening")
+            console.log(client_id, "is listening")
             if (this.#clients[client_id] != undefined) {
                 this.#clients[client_id]["res"] = res
                 this.emmiter(client_id)
+            } else {
+                res.send({ "message": "client does not exist" })
+            }
+        });
+        this.#app.post("/fHJQowZSpq_RTDB/disconnect", (req, res) => {
+            const client_data = req.body
+            const client_id = client_data["client_id"]
+            if (this.#clients[client_id] != undefined) {
+                delete this.#clients[client_id]
+                res.send({ "status": "diconnected" })
             } else {
                 res.send({ "message": "client does not exist" })
             }

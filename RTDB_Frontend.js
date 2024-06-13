@@ -22,8 +22,8 @@ class RTDB_Frontend {
                 "client_id": this.#id,
                 "data": data
             }
-            const client_emit_url = this.#url + "/fHJQowZSpq_RTDB/client_to_server"
-            const response = await fetch(client_emit_url, {
+            const url = this.#url + "/fHJQowZSpq_RTDB/client_to_server"
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -61,5 +61,25 @@ class RTDB_Frontend {
     listen(data) {
         this.#server_to_client_function = data
         this.listen_server()
+    }
+    async disconnect() {
+        if (this.#id != null) {
+            const payload = {
+                "client_id": this.#id,
+            }
+            const url = this.#url + "/fHJQowZSpq_RTDB/disconnect"
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            if (response.ok) {
+                const data = await response.json()
+                return data
+            }
+            return "failed to disconnect"
+        }
     }
 }
